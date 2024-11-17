@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for message in messages %}
+<div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+
+<h3>{{ product.name }}</h3>
+<div class="card shadow mb-3">
+  <div class="card-body">
+      <div class="row">
+        <div class="col-12 col-md-6">
+            {% if product.images.all %}
+        <div class="row">
+            <!-- Список миниатюр изображений слева -->
+            <div class="col-2">
+                <div class="image-thumbnails d-flex flex-column align-items-start">
+                    {% for image in product.images.all %}
+                        <img src="{{ product_url }}{{ image.image.url }}" alt="Миниатюра {{ product.name }}" class="thumbnail-img mb-2" style="width: 50px; height: 50px; cursor: pointer;" data-index="{{ forloop.counter0 }}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Основная карусель изображений -->
+            <div class="col-10">
+                <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-inner" style="height: 400px;">
+                        {% for image in product.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ product_url }}{{ image.image.url }}" alt="Изображение {{ product.name }}" class="d-block w-100 carousel-image" style="max-height: 400px; width: auto; height: auto; object-fit: contain;" data-bs-toggle="modal" data-bs-target="#imageModal" data-index="{{ forloop.counter0 }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev" style="background-color: rgba(255, 255, 255, 0.7); border-radius: 50%;">
+                        <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1);"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next" style="background-color: rgba(255, 255, 255, 0.7); border-radius: 50%;">
+                        <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1);"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно для отображения изображения на весь экран -->
+        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center position-relative">
+                        <img id="modalImage" src="" alt="" class="img-fluid">
+                        <button type="button" class="btn btn-secondary position-absolute top-50 start-0 translate-middle-y" id="modalPrevButton" style="width: 70px; height: 70px;">
+                            <span class="carousel-control-prev-icon" style="filter: invert(1);"></span>
+                        </button>
+                        <button type="button" class="btn btn-secondary position-absolute top-50 end-0 translate-middle-y" id="modalNextButton" style="width: 70px; height: 70px;">
+                            <span class="carousel-control-next-icon" style="filter: invert(1);"></span>
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <p>Нет изображений.</p>
+    {% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="row">
+                <div class="col-9">
+                    <p class="lh-base">{{ product.description }}</p>
+                </div>
+                <div class="col-3">
+                    <p class="text-center text-uppercase text-nowrap fw-bolder user-select-none fs-5 mt-3">{{ product.brand }}</p>
+                </div>
+            </div>
+            <hr>
+            <p>Цвет: {{ product.color }}</p>
+            <p>Высота: {{ product.height }}</p>
+            <p>Ширина: {{ product.width }}</p>
+            <p>Расположение морозильника: {{ product.freezer_location}}</p>
+            <p>Разморозка морозильной камеры: {{ product.defrosting_type }}</p>
+            <p>Количество камер: {{ product.chamber_count }}</p>
+            <p>Количество дверей: {{ product.door_count }}</p>
+            <div class="row">
+                <div class="col-6 p-1 ps-4 bg-secondary-subtle rounded-3">
+                    <h4 id="price">{{ product.price }}</h4>
+                </div>
+            </div>
+        </div>
+      </div>
+  </div>
+    {% if request.user.is_authenticated %}
+  <div class="card-footer text-end">
+      <a class="btn btn-sm btn-outline-dark shadow hover-effect" href="{% url 'update-fridge-page' product.id %}">Изменить</a>
+      <a class="btn btn-sm btn-danger shadow hover-effect" href="{% url 'delete-fridge-page' product.id %}">Удалить</a>
+      <a class="btn btn-sm btn-success shadow hover-effect" href="">Продано</a>
+  </div>
+    {% endif %}
+</div>
+
+<script>
+       const priceElement = document.getElementById('price');
+       const price = parseFloat(priceElement.textContent);
+       priceElement.textContent = price.toLocaleString('ru-RU') + ' ₽';
+</script>
+
+<script>
+    const images = [...document.querySelectorAll('.carousel-image')];
+    const modalImage = document.getElementById('modalImage');
+    const modal = document.getElementById('imageModal');
+
+    // Обработчик клика на миниатюры
+    document.querySelectorAll('.thumbnail-img').forEach(thumbnail => {
+        thumbnail.addEventListener('click', function() {
+            const index = this.getAttribute('data-index');
+            const carouselItems = document.querySelectorAll('.carousel-item');
+
+            // Устанавливаем активное изображение в карусели
+            carouselItems.forEach((item, idx) => {
+                item.classList.remove('active');
+                if (idx == index) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // Обработчик клика на изображения в карусели для открытия изображения в модальном окне
+    images.forEach((image, index) => {
+        image.addEventListener('click', function() {
+            const imageUrl = this.src;
+            modalImage.src = imageUrl;
+
+            // Устанавливаем текущий индекс для пролистывания
+            modal.setAttribute('data-current-index', index);
+            modal.setAttribute('data-total-images', images.length);
+        });
+    });
+
+    // Пролистывание изображений в модальном окне
+    modal.addEventListener('show.bs.modal', function () {
+        const currentIndex = parseInt(modal.getAttribute('data-current-index'));
+        updateModalImage(currentIndex);
+    });
+
+    // Обновление изображения в модальном окне
+    function updateModalImage(index) {
+        modalImage.src = images[index].src;
+    }
+
+    // Обработчики кликов для кнопок пролистывания в модальном окне
+    document.getElementById('modalPrevButton').addEventListener('click', function() {
+        let currentIndex = parseInt(modal.getAttribute('data-current-index'));
+        currentIndex = (currentIndex - 1 + images.length) % images.length; // Циклическое пролистывание
+        updateModalImage(currentIndex);
+        modal.setAttribute('data-current-index', currentIndex);
+    });
+
+    document.getElementById('modalNextButton').addEventListener('click', function() {
+        let currentIndex = parseInt(modal.getAttribute('data-current-index'));
+        currentIndex = (currentIndex + 1) % images.length; // Циклическое пролистывание
+        updateModalImage(currentIndex);
+        modal.setAttribute('data-current-index', currentIndex);
+    });
+
+    // Обработчик клавиш для пролистывания изображений стрелками
+    document.addEventListener('keydown', function(event) {
+        if (modal.classList.contains('show')) { // Проверяем, открыто ли модальное окно
+            if (event.key === 'ArrowLeft') { // Левая стрелка
+                document.getElementById('modalPrevButton').click();
+            } else if (event.key === 'ArrowRight') { // Правая стрелка
+                document.getElementById('modalNextButton').click();
+            }
+        }
+    });
+
+    // Закрытие модального окна по клику вне его или нажатию на крестик
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            bsModal.hide();
+        }
+    });
+</script>
+
+<style>
+    .thumbnail-img {
+        width: 50px; /* Ширина миниатюры */
+        height: 50px; /* Высота миниатюры */
+        opacity: 1;
+        transition: opacity 0.3s;
+    }
+    .thumbnail-img:hover {
+        opacity: 0.7;
+    }
+    .carousel-image {
+        cursor: pointer; /* Курсор указателя для изображений карусели */
+        max-height: 400px; /* Ограничиваем максимальную высоту изображения */
+        width: auto; /* Автоматическая ширина для пропорционального отображения */
+        height: auto; /* Автоматическая высота для пропорционального отображения */
+        object-fit: contain; /* Изображение масштабируется, чтобы поместиться в блок */
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 30px; /* Ширина иконок */
+        height: 30px; /* Высота иконок */
+    }
+</style>
+
+{% endblock %}

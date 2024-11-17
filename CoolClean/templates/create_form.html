@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-10 col-sm-9 col-md-8 col-lg-7 col-xl-6 mx-auto mb-3">
+    <div class="p-3 shadow">
+      <h1>{{ title }}</h1>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-2">
+        {% if existing_images %}
+          <h3>Существующие изображения:</h3>
+          <div id="existing-images">
+            {% for image in existing_images %}
+              <div class="existing-image" data-image-id="{{ image.id }}">
+                <img src="{{ product_url }}{{ image.image.url }}" alt="Existing Image" style="width: 100px; height: auto;">
+                <button type="button" class="remove-existing-image">Удалить</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+          <label class="form-label mt-5" for="id_images">Добавить Фото:</label>
+          <input class="form-control mb-3" type="file" name="images" id="id_images" multiple>
+          <div id="preview-container" style="display: flex; flex-wrap: wrap;"></div>
+          {% for f in form %}
+          <div class="row-md-3">
+              <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+                {{ f }}
+          </div>
+          <div class="form-text">
+            {{ f.help_text }}
+          </div>
+            {% if f.errors %}
+              <div class="text-danger">
+                {{ f.errors }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="col d-flex justify-content-end">
+          <button type="submit" class="btn btn-outline-dark shadow mt-2 hover-effect">{{ button }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .image-container {
+    position: relative;
+    display: inline-block; /* Чтобы изображения шли в ряд */
+    margin-right: 10px;
+  }
+
+  .remove-preview-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none; /* Скрываем кнопку по умолчанию */
+    background-color: red; /* Цвет фона кнопки */
+    color: white; /* Цвет текста кнопки */
+    border: none; /* Убираем границы */
+    cursor: pointer; /* Курсор в виде указателя */
+  }
+
+  .image-container:hover .remove-preview-image {
+    display: block; /* Показываем кнопку при наведении на контейнер */
+  }
+
+  img {
+    width: 100px;
+    height: auto;
+  }
+</style>
+
+<script>
+document.getElementById('id_images').addEventListener('change', function(event) {
+  const previewContainer = document.getElementById('preview-container');
+  previewContainer.innerHTML = ''; // Очистить предыдущий предварительный просмотр
+  const files = Array.from(event.target.files);
+  const dataTransfer = new DataTransfer(); // Создаем новый объект DataTransfer
+
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'image-container'; // Добавляем класс для стилей
+
+      const img = document.createElement('img');
+      img.src = e.target.result;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-danger btn-sm remove-preview-image';
+      removeBtn.textContent = 'Удалить';
+
+      // Функция для удаления изображения
+      removeBtn.onclick = function() {
+        // Удаляем изображение из DOM
+        previewContainer.removeChild(imgDiv);
+
+        // Удаляем файл из DataTransfer
+        const index = files.indexOf(file);
+        if (index > -1) {
+          files.splice(index, 1); // Удаляем файл из массива
+        }
+
+        // Очищаем DataTransfer и добавляем оставшиеся файлы
+        const newDataTransfer = new DataTransfer();
+        files.forEach(f => newDataTransfer.items.add(f)); // Добавляем оставшиеся файлы обратно
+        event.target.files = newDataTransfer.files; // Обновляем элемент input
+      };
+
+      imgDiv.appendChild(img);
+      imgDiv.appendChild(removeBtn);
+      previewContainer.appendChild(imgDiv);
+    };
+    reader.readAsDataURL(file);
+    dataTransfer.items.add(file); // Добавляем файл в DataTransfer
+  });
+
+  event.target.files = dataTransfer.files; // Обновляем элемент input
+});
+</script>
+
+<style>
+  .existing-image {
+    position: relative;
+    display: inline-block; /* Чтобы изображения шли в ряд */
+    margin-right: 10px;
+  }
+
+  .remove-existing-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none; /* Скрываем кнопку по умолчанию */
+    background-color: red; /* Цвет фона кнопки */
+    color: white; /* Цвет текста кнопки */
+    border: none; /* Убираем границы */
+    cursor: pointer; /* Курсор в виде указателя */
+  }
+
+  .existing-image:hover .remove-existing-image {
+    display: block; /* Показываем кнопку при наведении на контейнер */
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.remove-existing-image').forEach(button => {
+        button.addEventListener('click', function() {
+            const imageDiv = this.closest('.existing-image');
+            const imageId = imageDiv.getAttribute('data-image-id');
+
+            if (!imageId) {
+                console.error('Не удалось получить imageId');
+                return;
+            }
+            const productUrl = "{{ product_url }}";
+            const url = `${productUrl}/delete-image/${imageId}/`;
+
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    imageDiv.remove(); // Удаляем элемент из DOM
+                } else {
+                    console.error('Ошибка при удалении изображения:', response.statusText);
+                }
+            }).catch(error => {
+                console.error('Ошибка сети:', error);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-10 col-sm-9 col-md-8 col-lg-7 col-xl-6 mx-auto mb-3">
+    <div class="shadow card">
+        <div class="card-header bg-light text-dark">
+            <h2 class="text-align">Добавить</h2>
+        </div>
+        <div class="container">
+            <div class="row p-1 mt-2">
+                <div class="col">
+                  <a class="btn btn-info shadow m-2" href="{% url 'create-fridge-page' %}">Холодильник</a>
+                  <a class="btn btn-info shadow m-2" href="{% url 'create-washer-page' %}">Стиральная машина</a>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

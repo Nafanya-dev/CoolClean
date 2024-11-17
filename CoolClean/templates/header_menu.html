@@ -1,0 +1,32 @@
+<div class="bg-dark text-warning">+7915451215 blabla@gmail.bla</div>
+<nav class="navbar navbar-expand-md navbar-light bg-light">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link me-3 fs-6 text-danger hover-effect" href="{% url 'fridge-list-page' %}">Холодильники</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link me-5 fs-6 text-danger hover-effect" href="{% url 'washer-list-page' %}">Стиральные машины</a>
+        </li>
+      {% if request.user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link me-2 fs-6 text-danger hover-effect" href="{% url 'new-position' %}">Добавить позицию</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link me-2 fs-6 text-danger hover-effect" href="">Проданные товары</a>
+        </li>
+        <li class="nav-item">
+            <form action="/admin/logout/" method="post">
+                {% csrf_token %}
+                <input class="nav-link fs-6 text-danger hover-effect" type="submit" value="Выход">
+            </form>
+        </li>
+      {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
