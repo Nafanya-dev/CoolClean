@@ -22,6 +22,7 @@ urlpatterns = [
     path('', views.HomeView.as_view(), name='home-page'),
     path('fridges/', include('CoolClean.fridges.urls')),
     path('washers/', include('CoolClean.washers.urls')),
+    path('goods-sold/', include('CoolClean.goods_sold.urls')),
     path('new/position', views.NewPosition.as_view(), name='new-position'),
     path('admin/', admin.site.urls),
 ]

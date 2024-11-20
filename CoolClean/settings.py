@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'CoolClean',
     'CoolClean.fridges',
     'CoolClean.washers',
+    'CoolClean.goods.sold',
 ]
 
 MIDDLEWARE = [
